@@ -124,7 +124,7 @@ def run_one(spec: RunSpec, solver: str, max_timestep: int) -> RunRow:
     valid and success, and fill the cost fields only when success is True.
     pypibt has no per-step counters, so its recursion depth stays empty.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError
 
 
@@ -134,7 +134,7 @@ def summarise(rows: list[RunRow]) -> str:
     Not part of Algorithm 1. Cost ratios must use only the runs that every
     solver being compared solved; say how many runs that was.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError
 
 

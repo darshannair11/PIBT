@@ -20,7 +20,7 @@ def is_success(solution: Solution, goals: Config) -> bool:
 
     Algorithm 1: the one-shot termination test of section 4.4.1.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError
 
 
@@ -31,7 +31,7 @@ def sum_of_costs(solution: Solution, goals: Config) -> int:
     goal and returns later is charged up to its final arrival. Only meaningful
     when is_success is True.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError
 
 
@@ -40,7 +40,7 @@ def makespan(solution: Solution) -> int:
 
     Algorithm 1: the value of t at termination.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError
 
 
@@ -49,7 +49,7 @@ def sum_of_costs_lower_bound(dist: DistTable, starts: Config) -> int:
 
     Algorithm 1 Line 10 distances. Denominator of the SOC ratio.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError
 
 
@@ -58,7 +58,7 @@ def makespan_lower_bound(dist: DistTable, starts: Config) -> int:
 
     Denominator of the makespan ratio.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError
 
 
@@ -67,7 +67,7 @@ def runtime_per_step(stats: list[StepStats]) -> float:
 
     Algorithm 1 Lines 3-7, timed once per t.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError
 
 
@@ -77,7 +77,7 @@ def avg_recursion_depth(stats: list[StepStats]) -> float:
     Algorithm 1 Lines 8-22: depth 1 is a call from Line 6, depth 2 is the
     first priority inheritance at Line 16, and so on.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError
 
 
@@ -87,5 +87,5 @@ def goal_displacements(solution: Solution, goals: Config) -> int:
     Algorithm 1 Lines 15-16: a goal agent is displaced when it inherits
     priority from an agent that needs its cell.
     """
-    # TODO(Person A)
+    # TODO(Suyash)
     raise NotImplementedError

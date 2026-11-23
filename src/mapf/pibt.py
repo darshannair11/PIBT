@@ -123,7 +123,7 @@ class PIBT:
         Algorithm 1 Lines 1-2. Also builds the distance tables if none were
         passed in, and clears self.stats.
         """
-        # TODO(Person A, paired)
+        # TODO(Darshan; Suyash reviews)
         raise NotImplementedError
 
     def init_priorities(self) -> list[float]:
@@ -133,7 +133,7 @@ class PIBT:
         dist(start, goal) / grid size instead, which is the PIBT+ idea of
         Algorithm 2 Line 2; keep that as an option only if we report it.)
         """
-        # TODO(Person A, paired)
+        # TODO(Darshan; Suyash reviews)
         raise NotImplementedError
 
     # -- one timestep --------------------------------------------------------
@@ -143,7 +143,7 @@ class PIBT:
 
         Algorithm 1 Line 3.
         """
-        # TODO(Person A, paired)
+        # TODO(Darshan; Suyash reviews)
         raise NotImplementedError
 
     def order_candidates(self, agent: int, candidates: list[Coord], state: StepState) -> list[Coord]:
@@ -157,7 +157,7 @@ class PIBT:
         It must return a permutation of candidates and must not filter them:
         the conflict checks belong to Lines 12-13.
         """
-        # TODO(Person A)
+        # TODO(Darshan)
         raise NotImplementedError
 
     def plan_step(self, state: StepState) -> Config:
@@ -167,7 +167,7 @@ class PIBT:
         the procedure for each one that is still undecided. The lookahead
         variant overrides this method.
         """
-        # TODO(Person A, paired)
+        # TODO(Darshan; Suyash reviews)
         raise NotImplementedError
 
     def _pibt(self, agent: int, caller: int | None, state: StepState, depth: int = 1) -> bool:
@@ -185,7 +185,7 @@ class PIBT:
             Lines 20-21  no cell worked: stay and return False
         depth is not in the paper; it feeds StepStats.
         """
-        # TODO(Person A, paired)
+        # TODO(Darshan; Suyash reviews)
         raise NotImplementedError
 
     def step(self) -> Config:
@@ -195,7 +195,7 @@ class PIBT:
         update_priorities, call plan_step, commit the result, and append one
         StepStats (with the measured runtime) to self.stats.
         """
-        # TODO(Person A, paired)
+        # TODO(Darshan; Suyash reviews)
         raise NotImplementedError
 
     # -- whole run -----------------------------------------------------------
@@ -210,5 +210,5 @@ class PIBT:
         already are the goals, return [starts] without taking a step (pypibt
         takes one step first, so its makespan is 1 there).
         """
-        # TODO(Person A, paired)
+        # TODO(Darshan; Suyash reviews)
         raise NotImplementedError

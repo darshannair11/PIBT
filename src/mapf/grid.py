@@ -155,7 +155,7 @@ def is_free(grid: Grid, cell: Coord) -> bool:
 
     Algorithm 1: helper for Neigh() at Line 9.
     """
-    # TODO(Person A)
+    # TODO(Darshan)
     raise NotImplementedError
 
 
@@ -165,7 +165,7 @@ def neighbours(grid: Grid, cell: Coord) -> list[Coord]:
     Algorithm 1 Line 9: this is Neigh(pi_i[t]). The caller adds the "stay"
     cell. Return them in one fixed order so that runs are reproducible.
     """
-    # TODO(Person A)
+    # TODO(Darshan)
     raise NotImplementedError
 
 
@@ -174,7 +174,7 @@ def free_cells(grid: Grid) -> list[Coord]:
 
     Algorithm 1: input (graph G). Used for |V| and for free-cell indexing.
     """
-    # TODO(Person A)
+    # TODO(Darshan)
     raise NotImplementedError
 
 
@@ -184,5 +184,5 @@ def cell_index(grid: Grid) -> dict[Coord, int]:
     Algorithm 1: not a line of its own. It lets Lines 12 and 15 ("is some
     agent at v now / next step?") be answered with array lookups.
     """
-    # TODO(Person A)
+    # TODO(Darshan)
     raise NotImplementedError

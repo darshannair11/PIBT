@@ -23,7 +23,7 @@ def bfs_distances(grid: Grid, goal: Coord) -> np.ndarray:
     Returns an int32 array shaped like grid.free; unreachable cells and
     obstacles hold UNREACHABLE.
     """
-    # TODO(Person A): breadth-first search outward from goal.
+    # TODO(Darshan): breadth-first search outward from goal.
     raise NotImplementedError
 
 
@@ -37,10 +37,10 @@ class DistTable:
         """Store the inputs. Algorithm 1: precomputation before Line 1."""
         self.grid = grid
         self.goals = goals
-        # TODO(Person A): decide between building every table here (eager) and
+        # TODO(Darshan): decide between building every table here (eager) and
         # growing each BFS on demand (lazy, which is what pypibt does).
 
     def get(self, agent: int, cell: Coord) -> int:
         """dist(cell, g_agent). Algorithm 1 Line 10."""
-        # TODO(Person A)
+        # TODO(Darshan)
         raise NotImplementedError

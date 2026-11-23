@@ -34,11 +34,15 @@ How to frame it in the report: our versions are simplified re-implementations co
 ## Work split (two people)
 Agree the interface together first (about an hour): `pibt.py` exposes `step(...)` with two hook points, `order_candidates(agent, candidates, state)` for tie-breaking/guidance and `plan_step(state)` for lookahead. Both people code against it.
 
-| Owner | Tasks |
-|---|---|
-| Person A | Core PIBT (Algorithm 1), .map/.scen loader, BFS distance tables, validator (vertex, swap, illegal move), metrics (success, SOC ratio, makespan ratio, runtime/step, backtracking depth, goal displacements), paired-seed runner, pypibt cross-check, tie-breaking variants |
-| Person B | Related-work table (read winPIBT, hindrance/regret, APF in full), baselines (HCA*; check pibt2's solver list for others), multi-step lookahead, congestion guidance (stretch goal) |
-| Both | Pair on the core for its first working version; each writes the report section for the area they own; review each other's code and numbers |
+Revised Nov 22, 2026 to even out the coding (about 4 hours each for the Nov 23 version). The stubs carry matching `TODO(Darshan)` / `TODO(Suyash)` tags. The .map/.scen loader, seed helper and pypibt wrapper are already done.
+
+| Owner | For Nov 23 | After Nov 23 |
+|---|---|---|
+| Darshan | `grid.py` graph functions (neighbours, free-cell indexing), `dist.py` (BFS distance tables), `pibt.py` core (Algorithm 1) | Tie-breaking variants and congestion guidance (stretch goal), both through `order_candidates`; read hindrance/regret and APF in full |
+| Suyash | `validate.py` (vertex, swap, illegal move), `metrics.py` (success, SOC ratio, makespan ratio, runtime/step, backtracking depth, goal displacements), `run_one` and `summarise` in `experiments/run_compare.py`, pypibt cross-check runs | Multi-step lookahead through `plan_step`; baselines (HCA*; check pibt2's solver list for others); read winPIBT and EPIBT in full |
+| Both | Suyash reviews the PIBT core once it passes the four small test instances; Darshan reviews the validator. The solver and the code that judges it are written by different people on purpose | Each writes the report section and related-work rows for the area they own; review each other's code and numbers |
+
+Order: the validator and metrics need no PIBT (their tests use hand-written solutions), so both people start at once. Suyash does the two lower-bound metrics and `run_one` last, since they need `DistTable` and `PIBT.solve()`.
 
 ## Timeline
 - Nov 23 (due): minimal honest report: working validated Base PIBT, cross-check vs pypibt, first results on empty-8-8 and random-32-32-20, related-work paragraph, plan for the rest.
