@@ -1,10 +1,7 @@
-"""dist.py: BFS distance tables (Algorithm 1 Line 10)."""
+"""Tests for mapf.dist."""
 
-from conftest import not_implemented_yet
 from mapf.dist import UNREACHABLE, DistTable, bfs_distances
 from mapf.grid import parse_map
-
-pytestmark = not_implemented_yet
 
 
 def test_bfs_on_corridor():
