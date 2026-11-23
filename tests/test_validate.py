@@ -1,6 +1,5 @@
 """validate.py: each kind of illegal solution is caught, and a legal one passes."""
 
-from conftest import not_implemented_yet
 from mapf.grid import parse_map
 from mapf.validate import (
     check_moves,
@@ -10,8 +9,6 @@ from mapf.validate import (
     check_vertex_conflicts,
     validate_solution,
 )
-
-pytestmark = not_implemented_yet
 
 
 def test_legal_solution_passes(two_by_two, two_by_two_solution):
@@ -72,3 +69,18 @@ def test_unsolved_run_fails_only_the_goal_check(two_by_two, two_by_two_solution)
     )
     assert not strict.ok
     assert relaxed.ok, relaxed.errors
+
+
+def test_out_of_bounds_negative_index_does_not_wrap():
+    grid = parse_map("...")
+    assert not check_moves(grid, [[(0, -1)]]).ok
+
+
+def test_wrong_shape_stops_before_other_checks(two_by_two):
+    result = validate_solution(two_by_two.grid, two_by_two.starts, two_by_two.goals, [[(0, 0)]])
+    assert not result.ok and len(result.errors) == 1
+
+
+def test_follow_the_leader_is_not_a_swap():
+    # a1 moves into the cell a0 is leaving: legal (only exchanges are forbidden)
+    assert check_swap_conflicts([[(0, 0), (0, 1)], [(0, 1), (0, 2)]]).ok
