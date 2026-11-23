@@ -13,9 +13,16 @@ Project decisions, the professor's comment and the work split are in
 
 ## Status
 
-Skeleton only. The file loader, the seed helper, the pypibt wrapper and the
-test fixtures work. Everything algorithmic raises `NotImplementedError` and
-is marked `TODO`.
+Done: the file loader, the seed helper, the pypibt wrapper, the test
+fixtures, and the evaluation side: `validate.py`, `metrics.py`, and
+`run_one` / `summarise` in `experiments/run_compare.py` (checked against
+pypibt's output). Still stubs, raising `NotImplementedError` and marked
+`TODO(Darshan)`: the graph functions in `grid.py`, `dist.py` and the PIBT core
+in `pibt.py`. Until `DistTable` exists, `run_compare.py` cannot compute lower
+bounds, so it does not run yet.
+
+Optional extra evaluation (more scenarios, MAPF Tracker baseline,
+add-agents-until-failure sweep) is in `experiments/extras/`.
 
 ## Setup
 
@@ -50,6 +57,7 @@ file passes, delete the `not_implemented_yet` marker from that file.
 | `src/mapf/seeds.py` | `derive_seed`, the only source of seeds (done) |
 | `experiments/crosscheck.py` | wrapper that runs pypibt (done) |
 | `experiments/run_compare.py` | paired runs of our PIBT and pypibt, CSV output |
+| `experiments/extras/` | optional extra evaluation: more scenarios, MAPF Tracker baseline, add-agents-until-failure sweep ([README](experiments/extras/README.md)) |
 | `tests/` | hand-made instances: corridor swap, 2x2 grid, dead end, agent already on its goal |
 | `data/` | benchmark maps and scenarios |
 | `third_party/pypibt` | git submodule, used only by `experiments/crosscheck.py` |
