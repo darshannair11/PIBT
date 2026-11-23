@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+build/
+dist/
+.DS_Store
+
+# experiment outputs (regenerate with experiments/run_compare.py)
+results/
+
+# local tool state
+.planning/
