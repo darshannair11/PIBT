@@ -16,8 +16,6 @@ from mapf.metrics import (
 )
 from mapf.pibt import StepStats
 
-pytestmark = not_implemented_yet
-
 
 def test_two_by_two_solution(two_by_two, two_by_two_solution):
     assert is_success(two_by_two_solution, two_by_two.goals)
@@ -30,6 +28,7 @@ def test_unfinished_solution_is_not_a_success(two_by_two, two_by_two_solution):
     assert not is_success(two_by_two_solution[:2], two_by_two.goals)
 
 
+@not_implemented_yet  # needs DistTable (Darshan)
 def test_lower_bounds(two_by_two):
     dist = DistTable(two_by_two.grid, two_by_two.goals)
     assert sum_of_costs_lower_bound(dist, two_by_two.starts) == 2
@@ -57,3 +56,15 @@ def test_step_counters():
     ]
     assert runtime_per_step(stats) == pytest.approx(0.003)
     assert avg_recursion_depth(stats) == pytest.approx(8 / 4)
+
+
+def test_sum_of_costs_refuses_an_unsolved_run(two_by_two, two_by_two_solution):
+    with pytest.raises(ValueError):
+        sum_of_costs(two_by_two_solution[:2], two_by_two.goals)
+
+
+def test_no_steps_gives_nan_not_a_crash():
+    import math
+
+    assert math.isnan(runtime_per_step([]))
+    assert math.isnan(avg_recursion_depth([]))
