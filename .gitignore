@@ -24,3 +24,7 @@ docs/plans/
 # Claude session context (kept locally, not shared)
 CLAUDE.md
 .claude/
+
+# submission packaging
+make_zip.py
+*.zip

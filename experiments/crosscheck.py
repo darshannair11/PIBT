@@ -42,9 +42,7 @@ class PypibtResult:
 def _import_pypibt():
     """Import pypibt from the submodule. Not part of Algorithm 1."""
     if not (PYPIBT_SRC / "pypibt").is_dir():
-        raise RuntimeError(
-            "third_party/pypibt is empty. Run: git submodule update --init"
-        )
+        raise RuntimeError("third_party/pypibt is empty. Run: git submodule update --init")
     if str(PYPIBT_SRC) not in sys.path:
         sys.path.insert(0, str(PYPIBT_SRC))
     import pypibt
