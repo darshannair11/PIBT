@@ -1,8 +1,8 @@
-"""grid.py: the loader tests pass now; the graph-function tests wait for the stubs."""
+"""Tests for mapf.grid."""
 
 import pytest
 
-from conftest import DATA_DIR, not_implemented_yet
+from conftest import DATA_DIR
 from mapf.grid import (
     cell_index,
     free_cells,
@@ -13,8 +13,6 @@ from mapf.grid import (
     neighbours,
     parse_map,
 )
-
-# -- file I/O (filled in) ----------------------------------------------------
 
 
 def test_parse_map_bare_rows():
@@ -76,10 +74,6 @@ def test_load_instance_starts_and_goals_are_free_and_distinct():
     assert len(set(inst.starts)) == 100 and len(set(inst.goals)) == 100
 
 
-# -- graph functions (stubs) ---------------------------------------------------
-
-
-@not_implemented_yet
 def test_is_free():
     grid = parse_map(".@.")
     assert is_free(grid, (0, 0))
@@ -88,7 +82,6 @@ def test_is_free():
     assert not is_free(grid, (-1, 0))  # outside (must not wrap around)
 
 
-@not_implemented_yet
 def test_neighbours_open_centre_and_corner():
     grid = parse_map("...\n...\n...")
     assert set(neighbours(grid, (1, 1))) == {(0, 1), (2, 1), (1, 0), (1, 2)}
@@ -96,13 +89,11 @@ def test_neighbours_open_centre_and_corner():
     assert (1, 1) not in neighbours(grid, (1, 1))
 
 
-@not_implemented_yet
 def test_neighbours_skip_obstacles():
     grid = parse_map("...\n.@.\n...")
     assert set(neighbours(grid, (0, 1))) == {(0, 0), (0, 2)}
 
 
-@not_implemented_yet
 def test_free_cells_and_index():
     grid = parse_map(".@\n..")
     cells = free_cells(grid)

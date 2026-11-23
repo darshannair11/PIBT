@@ -1,12 +1,3 @@
-"""Grid maps and scenarios (MAPF benchmark .map / .scen files).
-
-The file parsing in this module is filled in. The graph functions
-(neighbours, free-cell indexing) are ours to write.
-
-Coordinates are (row, col) = (y, x). The .scen files store (x, y), and the
-loader converts them.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -19,18 +10,11 @@ Coord: TypeAlias = tuple[int, int]
 Config: TypeAlias = list[Coord]
 Solution: TypeAlias = list[Config]
 
-# Characters that are passable in the MAPF benchmark maps. Everything else
-# ('@', 'T', 'O', 'W') is an obstacle.
 PASSABLE_CHARS = frozenset(".GS")
 
 
 @dataclass(frozen=True)
 class Grid:
-    """A 4-connected grid: the graph G in the input of Algorithm 1.
-
-    free[row, col] is True when the cell can hold an agent.
-    """
-
     free: np.ndarray
     name: str = ""
 
@@ -45,11 +29,6 @@ class Grid:
 
 @dataclass(frozen=True)
 class Instance:
-    """One MAPF problem: the full input of Algorithm 1 (G, starts, goals).
-
-    starts[i] and goals[i] belong to agent i.
-    """
-
     grid: Grid
     starts: Config
     goals: Config
@@ -60,75 +39,52 @@ class Instance:
         return len(self.starts)
 
 
-# ---------------------------------------------------------------------------
-# File I/O (filled in)
-# ---------------------------------------------------------------------------
-
-
 def parse_map(text: str, name: str = "") -> Grid:
-    """Build a Grid from text. Input of Algorithm 1 (graph G).
-
-    Accepts the benchmark format (a header "type/height/width/map" followed by
-    the rows) and also bare rows with no header, which the tests use:
-
-        parse_map("...\\n.@.\\n...")
-    """
-    lines = [ln.rstrip("\r") for ln in text.splitlines()]
-    lines = [ln for ln in lines if ln.strip() != ""]
-    height = width = None
-    if any(ln.strip() == "map" for ln in lines):
-        split = next(i for i, ln in enumerate(lines) if ln.strip() == "map")
-        for ln in lines[:split]:
-            fields = ln.split()
-            if len(fields) == 2 and fields[0] == "height":
-                height = int(fields[1])
-            elif len(fields) == 2 and fields[0] == "width":
-                width = int(fields[1])
-        rows = lines[split + 1 :]
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if "map" in lines:
+        rows = lines[lines.index("map") + 1 :]
     else:
         rows = lines
     if not rows:
         raise ValueError(f"map {name!r} has no rows")
-    if height is None:
-        height = len(rows)
-    if width is None:
-        width = len(rows[0])
-    if len(rows) != height:
-        raise ValueError(f"map {name!r}: header says {height} rows, found {len(rows)}")
+
+    height = len(rows)
+    width = len(rows[0])
+    for line in lines:
+        words = line.split()
+        if len(words) != 2:
+            continue
+        if words[0] == "height" and int(words[1]) != height:
+            raise ValueError(f"map {name!r}: header says {words[1]} rows, found {height}")
+        if words[0] == "width":
+            width = int(words[1])
+
     free = np.zeros((height, width), dtype=bool)
-    for r, row in enumerate(rows):
-        if len(row) != width:
-            raise ValueError(f"map {name!r}: row {r} has {len(row)} cells, expected {width}")
-        for c, ch in enumerate(row):
-            free[r, c] = ch in PASSABLE_CHARS
+    for row, row_text in enumerate(rows):
+        if len(row_text) != width:
+            raise ValueError(f"map {name!r}: row {row} has {len(row_text)} cells, expected {width}")
+        for column, char in enumerate(row_text):
+            free[row, column] = char in PASSABLE_CHARS
     free.setflags(write=False)
     return Grid(free=free, name=name)
 
 
 def load_map(path: str | Path) -> Grid:
-    """Read a benchmark .map file. Input of Algorithm 1 (graph G)."""
     path = Path(path)
     return parse_map(path.read_text(), name=path.stem)
 
 
 def load_scen(path: str | Path, num_agents: int | None = None) -> tuple[Config, Config]:
-    """Read a benchmark .scen file. Input of Algorithm 1 (starts s_i, goals g_i).
-
-    Each data line is: bucket, map, width, height, start_x, start_y, goal_x,
-    goal_y, optimal_length (tab separated). The first num_agents lines are
-    used, which is the benchmark's convention. Returns (starts, goals) as
-    (row, col) pairs.
-    """
     starts: Config = []
     goals: Config = []
     for line in Path(path).read_text().splitlines():
-        fields = line.split()
-        if len(fields) != 9:
-            continue  # the "version 1" header or a blank line
-        sx, sy, gx, gy = (int(v) for v in fields[4:8])
-        starts.append((sy, sx))
-        goals.append((gy, gx))
-        if num_agents is not None and len(starts) >= num_agents:
+        columns = line.split()
+        if len(columns) != 9:
+            continue
+        start_x, start_y, goal_x, goal_y = map(int, columns[4:8])
+        starts.append((start_y, start_x))
+        goals.append((goal_y, goal_x))
+        if len(starts) == num_agents:
             break
     if num_agents is not None and len(starts) < num_agents:
         raise ValueError(f"{path}: asked for {num_agents} agents, file has {len(starts)}")
@@ -138,51 +94,42 @@ def load_scen(path: str | Path, num_agents: int | None = None) -> tuple[Config, 
 def load_instance(
     map_path: str | Path, scen_path: str | Path, num_agents: int | None = None
 ) -> Instance:
-    """Read a map and a scenario together. Input of Algorithm 1."""
     grid = load_map(map_path)
     starts, goals = load_scen(scen_path, num_agents)
     name = f"{Path(scen_path).stem}|agents={len(starts)}"
     return Instance(grid=grid, starts=starts, goals=goals, name=name)
 
 
-# ---------------------------------------------------------------------------
-# Graph functions (ours to write)
-# ---------------------------------------------------------------------------
-
-
 def is_free(grid: Grid, cell: Coord) -> bool:
-    """True when cell is inside the grid and not an obstacle.
-
-    Algorithm 1: helper for Neigh() at Line 9.
-    """
-    # TODO(Darshan)
-    raise NotImplementedError
+    row, column = cell
+    if not (0 <= row < grid.height and 0 <= column < grid.width):
+        return False
+    return bool(grid.free[row, column])
 
 
 def neighbours(grid: Grid, cell: Coord) -> list[Coord]:
-    """The free cells 4-adjacent to cell (up, down, left, right), without cell itself.
-
-    Algorithm 1 Line 9: this is Neigh(pi_i[t]). The caller adds the "stay"
-    cell. Return them in one fixed order so that runs are reproducible.
-    """
-    # TODO(Darshan)
-    raise NotImplementedError
+    # Algorithm 1, Line 9: Neigh()
+    neighbour_indexes = [(-1, 0), (0, -1), (0, 1), (1, 0)]
+    final_neighbours = []
+    for row, column in neighbour_indexes:
+        neighbour_cell = (cell[0] + row, cell[1] + column)
+        if is_free(grid, neighbour_cell):
+            final_neighbours.append(neighbour_cell)
+    return final_neighbours
 
 
 def free_cells(grid: Grid) -> list[Coord]:
-    """All free cells in row-major order: the vertex set V of graph G.
-
-    Algorithm 1: input (graph G). Used for |V| and for free-cell indexing.
-    """
-    # TODO(Darshan)
-    raise NotImplementedError
+    free_cells_list = []
+    for row in range(grid.height):
+        for column in range(grid.width):
+            if is_free(grid, (row, column)):
+                free_cells_list.append((row, column))
+    return free_cells_list
 
 
 def cell_index(grid: Grid) -> dict[Coord, int]:
-    """Map each free cell to its position in free_cells(grid).
-
-    Algorithm 1: not a line of its own. It lets Lines 12 and 15 ("is some
-    agent at v now / next step?") be answered with array lookups.
-    """
-    # TODO(Darshan)
-    raise NotImplementedError
+    free_cells_list = free_cells(grid)
+    free_cell_pos = {}
+    for i, cell in enumerate(free_cells_list):
+        free_cell_pos[cell] = i
+    return free_cell_pos
