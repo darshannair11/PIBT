@@ -20,3 +20,7 @@ HANDOFF.md
 HANDOFF.json
 docs/superpowers/
 docs/plans/
+
+# Claude session context (kept locally, not shared)
+CLAUDE.md
+.claude/
