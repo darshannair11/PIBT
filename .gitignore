@@ -11,5 +11,12 @@ dist/
 # experiment outputs (regenerate with experiments/run_compare.py)
 results/
 
-# local tool state
+# local planning files and tool state (PROJECT_NOTES.md stays tracked)
 .planning/
+[Pp][Ll][Aa][Nn].md
+[Pp][Ll][Aa][Nn][Nn][Ii][Nn][Gg].md
+*[-_.][Pp]lan.md
+HANDOFF.md
+HANDOFF.json
+docs/superpowers/
+docs/plans/
