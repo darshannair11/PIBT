@@ -35,7 +35,27 @@ if str(REPO_ROOT) not in sys.path:
 from mapf.seeds import derive_seed  # noqa: E402
 
 DATA_DIR = REPO_ROOT / "data"
-SOLVERS = ("ours-paper", "ours-random", "pypibt")
+S1 = {"hindrance": True}
+S2 = {"weighted_choice": True}
+S3 = {"swap_on_failed_push": True}
+S4 = {"protect_parked": 0.8}
+S5 = {"goal_lookahead": 6}
+RANDOM = {"tie_break": "random"}
+OUR_VARIANTS = {
+    "ours-paper": {"tie_break": "paper"},
+    "ours-random": RANDOM,
+    "s1-hindrance": RANDOM | S1,
+    "s2-weighted": RANDOM | S2,
+    "s3-swap": RANDOM | S3,
+    "s4-parked": RANDOM | S4,
+    "s5-lookahead": RANDOM | S5,
+    "s1+s3": RANDOM | S1 | S3,
+    "s1+s3+s4": RANDOM | S1 | S3 | S4,
+    "s2+s3": RANDOM | S2 | S3,
+    "s2+s3+s5": RANDOM | S2 | S3 | S5,
+}
+SOLVERS = (*OUR_VARIANTS, "pypibt")
+DEFAULT_SOLVERS = ("ours-paper", "ours-random", "pypibt")
 
 
 @dataclass(frozen=True)
@@ -137,11 +157,10 @@ def solve_spec(spec: RunSpec, solver: str, max_timestep: int) -> SolverOutput:
     from mapf.metrics import avg_recursion_depth, runtime_per_step
 
     inst = load_instance(spec.map_path, spec.scen_path, spec.num_agents)
-    if solver in ("ours-paper", "ours-random"):
-        from mapf.pibt import PIBT, TIE_PAPER, TIE_RANDOM
+    if solver in OUR_VARIANTS:
+        from mapf.pibt import PIBT
 
-        tie_break = TIE_PAPER if solver == "ours-paper" else TIE_RANDOM
-        pibt = PIBT(inst.grid, inst.starts, inst.goals, seed=spec.seed, tie_break=tie_break)
+        pibt = PIBT(inst.grid, inst.starts, inst.goals, seed=spec.seed, **OUR_VARIANTS[solver])
         solution = pibt.solve(max_timestep=max_timestep)
         dist = pibt.dist if pibt.dist is not None else DistTable(inst.grid, inst.goals)
         return SolverOutput(
@@ -284,7 +303,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--scens", nargs="+", type=int, default=[1], help="scenario ids")
     parser.add_argument("--agents", nargs="+", type=int, default=[10, 20])
     parser.add_argument("--reps", type=int, default=3, help="repetitions (seeds) per instance")
-    parser.add_argument("--solvers", nargs="+", choices=SOLVERS, default=list(SOLVERS))
+    parser.add_argument("--solvers", nargs="+", choices=SOLVERS, default=list(DEFAULT_SOLVERS))
     parser.add_argument("--max-timestep", type=int, default=1000)
     parser.add_argument("--out", type=Path, default=REPO_ROOT / "results" / "compare.csv")
     parser.add_argument("--list", action="store_true", help="print the planned runs and exit")
