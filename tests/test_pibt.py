@@ -1,17 +1,11 @@
-"""pibt.py: behaviour on the four hand-made instances (Algorithm 1).
-
-These need grid, dist, validate and metrics as well, so they are the last
-tests to turn green.
-"""
+"""Tests for mapf.pibt."""
 
 import pytest
 
-from conftest import not_implemented_yet
+from mapf.grid import parse_map
 from mapf.metrics import goal_displacements, is_success, makespan, sum_of_costs
 from mapf.pibt import PIBT, TIE_BREAK_RULES, TIE_PAPER
 from mapf.validate import validate_solution
-
-pytestmark = not_implemented_yet
 
 MAX_T = 20
 SEEDS = range(5)
@@ -92,3 +86,124 @@ def test_priorities_start_distinct_in_unit_interval(two_by_two):
 def test_unknown_tie_break_is_rejected(two_by_two):
     with pytest.raises(ValueError):
         PIBT(two_by_two.grid, two_by_two.starts, two_by_two.goals, tie_break="nope")
+
+
+SWITCHES = [
+    {"hindrance": True, "tie_break": "random"},
+    {"weighted_choice": True, "tie_break": "random"},
+    {"swap_on_failed_push": True},
+    {"protect_parked": 0.8, "tie_break": "random"},
+    {"goal_lookahead": 3, "tie_break": "random"},
+    {"hindrance": True, "swap_on_failed_push": True, "protect_parked": 1.0, "tie_break": "random"},
+    {
+        "weighted_choice": True,
+        "swap_on_failed_push": True,
+        "goal_lookahead": 3,
+        "tie_break": "random",
+    },
+]
+
+
+@pytest.mark.parametrize("switches", SWITCHES)
+@pytest.mark.parametrize("seed", SEEDS)
+def test_every_step_is_legal_with_switches_on(any_instance, switches, seed):
+    solver = PIBT(any_instance.grid, any_instance.starts, any_instance.goals, seed=seed, **switches)
+    solution = solver.solve(max_timestep=MAX_T)
+    result = validate_solution(
+        any_instance.grid, any_instance.starts, any_instance.goals, solution, require_goals=False
+    )
+    assert result.ok, result.errors
+
+
+@pytest.mark.parametrize("switches", SWITCHES)
+def test_two_by_two_is_solved_with_switches_on(two_by_two, switches):
+    solver = PIBT(two_by_two.grid, two_by_two.starts, two_by_two.goals, seed=0, **switches)
+    assert is_success(solver.solve(max_timestep=MAX_T), two_by_two.goals)
+
+
+def test_switches_are_off_by_default(two_by_two):
+    solver = PIBT(two_by_two.grid, two_by_two.starts, two_by_two.goals)
+    assert solver.hindrance is False
+    assert solver.weighted_choice is False
+    assert solver.goal_lookahead == 0
+    assert solver.swap_on_failed_push is False
+    assert solver.protect_parked == 0.0
+
+
+def test_hindrance_keeps_a_pushed_agent_out_of_the_pocket_the_pusher_wants():
+    grid = parse_map("@@.\n...\n@.@")
+    starts, goals = [(1, 0), (1, 1)], [(2, 1), (1, 1)]
+    for seed in range(10):
+        solver = PIBT(grid, starts, goals, seed=seed, tie_break="random", hindrance=True)
+        assert is_success(solver.solve(max_timestep=MAX_T), goals)
+
+
+@pytest.mark.parametrize("tie_break", TIE_BREAK_RULES)
+def test_swap_frees_a_pair_frozen_at_a_dead_end(tie_break):
+    grid = parse_map("@@.\n...\n@.@")
+    starts, goals = [(1, 0), (2, 1)], [(2, 1), (1, 1)]
+    frozen = 0
+    for seed in range(10):
+        plain = PIBT(grid, starts, goals, seed=seed, tie_break=tie_break)
+        frozen += not is_success(plain.solve(max_timestep=60), goals)
+        swapping = PIBT(
+            grid, starts, goals, seed=seed, tie_break=tie_break, swap_on_failed_push=True
+        )
+        assert is_success(swapping.solve(max_timestep=60), goals)
+    assert frozen > 0
+
+
+def test_goal_lookahead_cannot_be_negative(two_by_two):
+    with pytest.raises(ValueError):
+        PIBT(two_by_two.grid, two_by_two.starts, two_by_two.goals, goal_lookahead=-1)
+
+
+def test_weighted_choice_usually_goes_round_a_parked_agent():
+    grid = parse_map("...\n...")
+    starts, goals = [(0, 0), (0, 1)], [(1, 2), (0, 1)]
+    undisturbed = 0
+    for seed in range(40):
+        solver = PIBT(grid, starts, goals, seed=seed, tie_break="random", weighted_choice=True)
+        solution = solver.solve(max_timestep=MAX_T)
+        assert is_success(solution, goals)
+        undisturbed += goal_displacements(solution, goals) == 0
+    assert undisturbed >= 30
+
+
+def test_weighted_choice_is_reproducible(two_by_two):
+    runs = [
+        PIBT(
+            two_by_two.grid, two_by_two.starts, two_by_two.goals, seed=3, weighted_choice=True
+        ).solve(MAX_T)
+        for _ in range(2)
+    ]
+    assert runs[0] == runs[1]
+
+
+def test_lookahead_holds_an_agent_that_would_be_pushed_off_its_goal():
+    grid = parse_map(".....")
+    starts, goals = [(0, 0), (0, 2)], [(0, 4), (0, 3)]
+    plain = PIBT(grid, starts, goals, seed=0, tie_break="random")
+    plain.reset()
+    plain.step()
+    assert plain.current[1] == (0, 3)
+    looking = PIBT(grid, starts, goals, seed=0, tie_break="random", goal_lookahead=4)
+    looking.reset()
+    looking.step()
+    assert looking.holding == {1}
+    assert looking.current[1] != (0, 3)
+
+
+def test_protect_parked_must_be_a_probability(two_by_two):
+    with pytest.raises(ValueError):
+        PIBT(two_by_two.grid, two_by_two.starts, two_by_two.goals, protect_parked=-0.1)
+
+
+def test_protect_parked_goes_round_an_agent_resting_on_its_goal():
+    grid = parse_map("...\n...")
+    starts, goals = [(0, 0), (0, 1)], [(1, 2), (0, 1)]
+    for seed in range(10):
+        solver = PIBT(grid, starts, goals, seed=seed, tie_break="random", protect_parked=1.0)
+        solution = solver.solve(max_timestep=MAX_T)
+        assert is_success(solution, goals)
+        assert goal_displacements(solution, goals) == 0
