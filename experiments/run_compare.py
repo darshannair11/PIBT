@@ -35,25 +35,31 @@ if str(REPO_ROOT) not in sys.path:
 from mapf.seeds import derive_seed  # noqa: E402
 
 DATA_DIR = REPO_ROOT / "data"
-S1 = {"hindrance": True}
-S2 = {"weighted_choice": True}
-S3 = {"swap_on_failed_push": True}
-S4 = {"protect_parked": 0.8}
-S5 = {"goal_lookahead": 6}
-RANDOM = {"tie_break": "random"}
-OUR_VARIANTS = {
-    "ours-paper": {"tie_break": "paper"},
-    "ours-random": RANDOM,
-    "s1-hindrance": RANDOM | S1,
-    "s2-weighted": RANDOM | S2,
-    "s3-swap": RANDOM | S3,
-    "s4-parked": RANDOM | S4,
-    "s5-lookahead": RANDOM | S5,
-    "s1+s3": RANDOM | S1 | S3,
-    "s1+s3+s4": RANDOM | S1 | S3 | S4,
-    "s2+s3": RANDOM | S2 | S3,
-    "s2+s3+s5": RANDOM | S2 | S3 | S5,
+SWITCHES = {
+    "s1": {"hindrance": True},
+    "s2": {"weighted_choice": True},
+    "s3": {"swap_on_failed_push": True},
+    "s4": {"protect_parked": 0.8},
+    "s5": {"goal_lookahead": 6},
 }
+TIE_CHOICES = ((), ("s1",), ("s4",), ("s1", "s4"), ("s2",))
+
+
+def switch_combinations() -> dict[str, dict]:
+    # s2 replaces the ranked tie-break, so it is not combined with s1 or s4
+    variants = {}
+    for tie in TIE_CHOICES:
+        for swap in ((), ("s3",)):
+            for look in ((), ("s5",)):
+                names = sorted(tie + swap + look)
+                options = {"tie_break": "random"}
+                for name in names:
+                    options |= SWITCHES[name]
+                variants["+".join(names) or "ours-random"] = options
+    return variants
+
+
+OUR_VARIANTS = {"ours-paper": {"tie_break": "paper"}} | switch_combinations()
 SOLVERS = (*OUR_VARIANTS, "pypibt")
 DEFAULT_SOLVERS = ("ours-paper", "ours-random", "pypibt")
 
